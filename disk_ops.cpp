@@ -27,8 +27,10 @@ int make_fs(char* disk_name)
 
     for(ll i=0; i<num_of_inodes; i++)
     {
-        array_of_inodes[i].block_ptr[0] = -1;
-        array_of_inodes[i].block_ptr[1] = -1;
+        for(ll j = 0; j<num_of_direct_pointer; j++)
+        {
+            array_of_inodes[i].block_ptr[j] = -1;
+        }
     }
 
     for(ll i= 0; i<num_of_inodes; i++)
@@ -162,4 +164,211 @@ int umount_fs(char *disk_name)
     memset(data_bmap, false, sizeof(data_bmap));
     memset(inode_bmap, false, sizeof(inode_bmap));
     memset(file_descriptors, "",sizeof(file_descriptors));
+    sblock.file_inode_position_map.clear();
+    memset(sblock.filedescriptor_bmap),  false, sizeof(sblock.filedescriptor_bmap));
+
+    isactive = 0;
+}
+
+int fs_create(char *name)
+{
+    int is_inode_free = 0;
+    int is_data_block_free = 0;
+    ll free_inode_num = -1;
+    ll free_data_block_num = -1;
+    string filename = string(name);
+
+    for(ll i=0; i< num_of_inodes; i++)
+    {
+        if(inode_bmap[i] == false)
+        {
+            is_inode_free = 1;
+            free_inode_num = i;
+            break;
+        }
+    }
+
+    if(is_inode_free == 0)
+    {
+        return -1;
+    }
+
+    for(ll i=0; i< number_of_blocks_for_data; i++)
+    {
+        if(data_bmap[i] == false)
+        {
+            is_data_block_free = 1;
+            free_data_block_num = i;
+            break;
+        }
+    }
+
+    if(is_data_block_free == 0)
+    {
+        return -1;
+    }
+
+    struct inode ide;
+
+    ide.filename = filename;
+    ide.filesize = 0;
+    ide.block_ptr[0] = free_data_block_num;
+
+    array_of_inodes[free_inode_num] = ide;
+    inode_bmap[free_inode_num] = true;
+    data_bmap[free_data_block_num] = true;
+
+    return 1;
+}
+
+int fs_open(char *name)
+{
+    string filename = string(name);
+    int is_file_present = 0;
+    ll file_inode_num = -1;
+    int is_filedescriptor_free = 0;
+    ll file_descriptor_num = -1;
+    int is_file_already_open = 0;
+
+    for(ll i = 0; i<num_of_inodes; i++)
+    {
+        if(array_of_inodes[i].filename == filename)
+        {
+            is_file_present = 1;
+            file_inode_num = i;
+            break;
+        }
+    }
+
+    if(is_file_present == 0)
+    {
+        return -1;
+    }
+
+    for(ll i = 0; i<num_of_fd; i++)
+    {
+        if(sblock.filedescriptor_bmap[i] == false)
+        {
+            is_filedescriptor_free = 1;
+            file_descriptor_num = i;
+            break;
+        }
+    }
+
+    if(is_filedescriptor_free == 0)
+    {
+        return -1;
+    }
+
+    string mode;
+    cout<<"Please enter file open mode"<<endl;
+    cin>>mode;
+
+    if(mode == "w" || mode == "a")
+    {
+        for(auto i = sblock.file_inode_position_map.begin(); i != sblock.file_inode_position_map.end(); i++)
+        {
+            if((*i).inode == file_inode_num && (*i).mode == mode)
+            {
+                is_file_already_open = 1;
+                break;
+            }
+        }
+    }
+
+    if(is_file_already_open == 1)
+    {
+        return -1;
+    }
+
+    file_descriptors[file_descriptor_num] = filename;
+
+    struct file_inode_position f_i_p_map;
+    f_i_p_map.inode = file_inode_num;
+    f_i_p_map.fd = file_descriptor_num;
+    f_i_p_map.position = 0;
+    f_i_p_map.mode = mode;
+    sblock.file_inode_position_map.push_back(f_i_p_map);
+
+    sblock.filedescriptor_bmap[file_descriptor_num] = true;
+
+    return 1;
+}
+
+int fs_close(int filedes)
+{
+    ll is_file_descriptor_open = 0;
+
+    vector<file_inode_position>::iterator it;
+    for(auto i = sblock.file_inode_position_map.begin(); i != sblock.file_inode_position_map.end(); i++)
+    {
+        if((*i).fd == filedes)
+        {
+            is_file_descriptor_open = 1;
+            it = i;
+            break;
+        }
+    }
+
+    if(is_file_descriptor_open == 0)
+    {
+        return -1;
+    }
+
+    file_descriptors[filedes] = "";
+    sblock.file_inode_position_map.erase(it);
+    sblock.filedescriptor_bmap[filedes] = false;
+
+    return 1;
+}
+
+
+int fs_delete(char *name)
+{
+    string filename = string(name);
+    int is_file_present = 0;
+    ll inode_num = -1;
+    int is_file_open = 0;
+
+    for(ll i = 0; i<num_of_inodes; i++)
+    {
+        if(array_of_inodes[i].filename == filename)
+        {
+            is_file_present = 1;
+            inode_num = i;
+            break;
+        }
+    }
+
+    if(is_file_present == 0)
+    {
+        return -1;
+    }
+
+    for(ll i=0; i<num_of_fd; i++)
+    {
+        if(file_descriptors[i] == filename)
+        {
+            is_file_open = 1;
+            break;
+        }
+    }
+
+    if(is_file_open == 1)
+    {
+        return -1;
+    }
+
+    for(ll i = 0; i< num_of_direct_pointer; i++)
+    {
+        data_bmap[array_of_inodes[inode_num].block_ptr[i]] = false;
+        array_of_inodes[inode_num].block_ptr[i] = -1;
+    }
+
+    inode_bmap[array_of_inodes[inode_num].inode] = false;
+
+    array_of_inodes[inode_num].filename = "";
+    array_of_inodes[inode_num].filesize = 0;
+    
+    return 1;
 }
