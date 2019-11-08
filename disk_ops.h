@@ -146,37 +146,40 @@ int umount_fs(char *disk_name)
         return 0;
     }
 
+    cout<<"here 2"<<endl;
     fseek(disk_ptr, (sblock.num_of_blocks_for_sb) * block_size, SEEK_SET);
     len = sizeof(data_bmap);
     char dbmap_buff[len];
     memset(dbmap_buff, 0, len);
     memcpy(dbmap_buff, data_bmap, len);
-    fwrite(dbmap_buff, sizeof(char), len, disk_ptr);
-
+    fwrite(dbmap_buff, sizeof(char), len, disk_ptr);    
+    cout<<"here 3"<<endl;
     fseek(disk_ptr, (sblock.num_of_blocks_for_sb + sblock.number_of_blocks_for_data_bmap) * block_size, SEEK_SET);
     len = sizeof(inode_bmap);
     char ibmap_buff[len];
     memset(ibmap_buff, 0, len);
     memcpy(ibmap_buff, inode_bmap, len);
     fwrite(ibmap_buff, sizeof(char), len, disk_ptr);
-
+    cout<<"here 4"<<endl;
     fseek(disk_ptr, (sblock.num_of_blocks_for_sb + sblock.number_of_blocks_for_data_bmap + sblock.num_of_blocks_for_inode_bmap) * block_size, SEEK_SET);
     len = sizeof(array_of_inodes);
     char inode_buff[len];
     memset(inode_buff, 0, len);
     memcpy(inode_buff, array_of_inodes, len);
     fwrite(inode_buff, sizeof(char), len, disk_ptr);
-
+    cout<<"here 5"<<endl;
     memset(data_bmap, false, sizeof(data_bmap));
     memset(inode_bmap, false, sizeof(inode_bmap));
     for(int k=0; k< num_of_fd; k++){
         file_descriptors[k]="";
     }
+    cout<<"here 6"<<endl;
     // memset(file_descriptors, "", sizeof(file_descriptors));
     sblock.file_inode_position_map.clear();
     memset(sblock.filedescriptor_bmap,  false, sizeof(sblock.filedescriptor_bmap));
-
+    cout<<"here 7"<<endl;
     isactive = 0;
+    return 1;
 }
 
 int fs_create(char *name)
