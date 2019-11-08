@@ -40,3 +40,4 @@ extern bool inode_bmap[num_of_inodes];
 extern bool data_bmap[number_of_blocks_for_data];
 extern struct inode array_of_inodes[num_of_inodes];
 //extern string file_descriptors[num_of_fd];
+//test commit
