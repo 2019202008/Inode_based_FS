@@ -2,29 +2,30 @@
 
 static int isactive;
 struct superblock sblock;
-File *disk_ptr;
+FILE *disk_ptr;
 bool inode_bmap[num_of_inodes];
 bool data_bmap[number_of_blocks_for_data];
 struct inode array_of_inodes[num_of_inodes];
 string file_descriptors[num_of_fd];
 
 int make_fs(char* disk_name)
-{
+{   
     char buf[block_size];
     int len;
-
-    if(access(disk_name,F_OK) != -1)
+    
+    if(access(disk_name, F_OK) != -1)
     {
+        // cout<<"here"<<access(disk_name, F_OK)<<endl;
         return 0;
     }
 
     disk_ptr = fopen(disk_name,"w");
 
-    for(ll i =0; i<disk_blocks; i++)
+    for(ll i =0; i<num_of_blocks; i++)
     {
          fwrite(buf, 0, block_size, disk_ptr);
     }
-
+    
     for(ll i=0; i<num_of_inodes; i++)
     {
         for(ll j = 0; j<num_of_direct_pointer; j++)
@@ -76,11 +77,13 @@ int make_fs(char* disk_name)
     return 1;
 }
 
-int mount_fs(char *disk_name)
+int mount_fs(char* disk_name)
 {
-    int len;
+    int len;    
     disk_ptr = NULL;
+    cout<<"Hey1 "<<disk_name<<endl;
     disk_ptr = fopen(disk_name, "r");
+    cout<<"Hey2"<<endl;
     if (disk_ptr == NULL)
     {
         return 0;
@@ -91,33 +94,36 @@ int mount_fs(char *disk_name)
     memset(sblock_buff, 0, len);
     fread(sblock_buff, sizeof(char), len, disk_ptr);
     memcpy(&sblock, sblock_buff, len);
-
+    cout<<"Hey3"<<endl;
     fseek(disk_ptr, (sblock.num_of_blocks_for_sb) * block_size, SEEK_SET);
     len = sizeof(data_bmap);
     char dbmap_buff[len];
     memset(dbmap_buff, 0, len);
     fread(dbmap_buff, sizeof(char), len, disk_ptr);
     memcpy(data_bmap, dbmap_buff, len);
-
+cout<<"Hey4"<<endl;
     fseek(disk_ptr, (sblock.num_of_blocks_for_sb + sblock.number_of_blocks_for_data_bmap) * block_size, SEEK_SET);
     len = sizeof(inode_bmap);
     char ibmap_buff[len];
     memset(ibmap_buff, 0, len);
     fread(ibmap_buff, sizeof(char), len, disk_ptr);
     memcpy(inode_bmap, ibmap_buff, len);
-
+cout<<"Hey5"<<endl;
     fseek(disk_ptr, (sblock.num_of_blocks_for_sb + sblock.number_of_blocks_for_data_bmap + sblock.num_of_blocks_for_inode_bmap) * block_size, SEEK_SET);
     len = sizeof(array_of_inodes);
     char inode_buff[len];
     memset(inode_buff, 0, len);
     fread(inode_buff, sizeof(char), len, disk_ptr);
     memcpy(&array_of_inodes, inode_buff, len);
-
+cout<<"Hey6"<<endl;
     for(ll i =0; i<num_of_fd; i++)
     {
         file_descriptors[i] = "";
     }
+    cout<<"Hey7"<<endl;
     isactive = 1;
+    cout<<"Hey8"<<endl;
+    write(0, "hello geeks\n", strlen("hello geeks\n"));
     return 1;
 }
 
@@ -163,9 +169,12 @@ int umount_fs(char *disk_name)
 
     memset(data_bmap, false, sizeof(data_bmap));
     memset(inode_bmap, false, sizeof(inode_bmap));
-    memset(file_descriptors, "",sizeof(file_descriptors));
+    for(int k=0; k< num_of_fd; k++){
+        file_descriptors[k]="";
+    }
+    // memset(file_descriptors, "", sizeof(file_descriptors));
     sblock.file_inode_position_map.clear();
-    memset(sblock.filedescriptor_bmap),  false, sizeof(sblock.filedescriptor_bmap));
+    memset(sblock.filedescriptor_bmap,  false, sizeof(sblock.filedescriptor_bmap));
 
     isactive = 0;
 }
@@ -268,7 +277,7 @@ int fs_open(char *name)
     {
         for(auto i = sblock.file_inode_position_map.begin(); i != sblock.file_inode_position_map.end(); i++)
         {
-            if((*i).inode == file_inode_num && (*i).mode == mode)
+            if((*i).inodeid == file_inode_num && (*i).mode == mode)
             {
                 is_file_already_open = 1;
                 break;
@@ -284,7 +293,7 @@ int fs_open(char *name)
     file_descriptors[file_descriptor_num] = filename;
 
     struct file_inode_position f_i_p_map;
-    f_i_p_map.inode = file_inode_num;
+    f_i_p_map.inodeid = file_inode_num;
     f_i_p_map.fd = file_descriptor_num;
     f_i_p_map.position = 0;
     f_i_p_map.mode = mode;
@@ -365,10 +374,8 @@ int fs_delete(char *name)
         array_of_inodes[inode_num].block_ptr[i] = -1;
     }
 
-    inode_bmap[array_of_inodes[inode_num].inode] = false;
-
+    inode_bmap[inode_num] = false;
     array_of_inodes[inode_num].filename = "";
-    array_of_inodes[inode_num].filesize = 0;
-    
+    array_of_inodes[inode_num].filesize = 0;    
     return 1;
 }
