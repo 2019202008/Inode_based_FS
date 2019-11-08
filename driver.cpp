@@ -8,20 +8,39 @@ int main()
     cout<<"3: Unmount"<<endl;
     cout<<"4: Create File"<<endl;
     cout<<"5: Open File"<<endl;
-    int choice;
-    cin>>choice;    
-    string s="Custom disk";    
+        
+    string s="Customdisk";    
     char dname[Buffer_Size];                        
     strcpy(dname, s.c_str());
-    if(choice==1)   {
+
+    while(true)
+    {
+        int choice;
+        cout<<"enter choice"<<endl;
+        cin>>choice;
+        if(choice==1)   {
         cout << make_fs(dname);
+        }
+        else if(choice==2)  {
+            cout << "Here"; 
+            //int g=0;           
+            int g=mount_fs(dname);
+            write(0, to_string(g).c_str(), strlen(to_string(g).c_str()));
+            cout<<"mount"<<endl;
+        }
+        else if(choice == 3)
+        {
+            int g=umount_fs(dname);
+            write(0, to_string(g).c_str(), strlen(to_string(g).c_str()));
+            cout<<"unmount "<<g<<endl;
+        }
+        else
+        {
+            break;
+        }    
     }
-    else if(choice==2)  {
-        cout << "Here"; 
-        //int g=0;           
-        int g=mount_fs(dname);
-        write(0, to_string(g).c_str(), strlen(to_string(g).c_str()));
-    }
+    
+    
     // switch(choice){
     //     case 1:  {          
     //         cout << make_fs(dname);       
@@ -43,6 +62,6 @@ int main()
     //         cout<<"abc"<<endl; }
     // }
     
-
-    return 0;
+    cout<<"here2"<<endl;
+   // return 0;
 }
