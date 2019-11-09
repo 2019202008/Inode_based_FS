@@ -9,8 +9,6 @@
 #define num_of_inodes 5
 #define number_of_blocks_for_data 10
 #define Buffer_Size 50
-// ll num_of_inodes = ceil(num_of_blocks/4);
-// ll number_of_blocks_for_data = ceil(num_of_blocks / 2);
 
 using namespace std;
 struct file_inode_position
@@ -45,12 +43,4 @@ struct superblock
     bool filedescriptor_bmap[num_of_fd];
 };
 
-
-
-
-
-
-//extern string file_descriptors[num_of_fd];
-//test commit
-//test commit 04
-//test cmmit 05
+extern struct superblock sblock;
