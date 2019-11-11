@@ -2,19 +2,7 @@
 //#include <bits/stdc++.h>
 using namespace std;
 int main()
-{
-    cout<<"1: Create File System"<<endl;
-    cout<<"2: Mount"<<endl;
-    cout<<"3: Unmount"<<endl;
-    cout<<"4: Create File"<<endl;
-    cout<<"5: Open File"<<endl;
-    cout<<"6: close File"<<endl;
-    cout<<"7: delete File"<<endl;
-    cout<<"8: print file decriptor"<<endl;
-    cout<<"9: print bit map"<<endl;
-    cout<<"10: print inode"<<endl;
-    cout<<"11: print file inode position map"<<endl;
-        
+{        
     string s="Customdisk"; 
 //    string f = "test.txt";   
 
@@ -29,6 +17,17 @@ int main()
         int choice;
         cout<<endl;
         cout<<"enter choice"<<endl;
+        cout<<"1: Create File System"<<endl;
+        cout<<"2: Mount"<<endl;
+        cout<<"3: Unmount"<<endl;
+        cout<<"4: Create File"<<endl;
+        cout<<"5: Open File"<<endl;
+        cout<<"6: close File"<<endl;
+        cout<<"7: delete File"<<endl;
+        cout<<"8: print file decriptor"<<endl;
+        cout<<"9: print bit map"<<endl;
+        cout<<"10: print inode"<<endl;
+        cout<<"11: print file inode position map"<<endl;
         cin>>choice;
         if(choice==1)   {
         cout << make_fs(dname);
