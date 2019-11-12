@@ -1,5 +1,5 @@
- #include "disk_ops.h"
-//#include <bits/stdc++.h>
+#include "filewrite.h"
+#include "disk_ops.h"
 using namespace std;
 int main()
 {
@@ -14,8 +14,9 @@ int main()
     cout<<"9: print bit map"<<endl;
     cout<<"10: print inode"<<endl;
     cout<<"11: print file inode position map"<<endl;
+    cout<<"12: file write"<<endl;
         
-    string s="Customdisk"; 
+    string s="Customdisk.txt"; 
 //    string f = "test.txt";   
 
     char dname[Buffer_Size];
@@ -107,13 +108,16 @@ int main()
         {
             pritfileinodemap();
         }
+        else if(choice == 12)
+        {
+            file_write_operation(dname);            
+        }
         else
         {
             break;
         }
         
-    }
-    
+    }    
     cout<<"end"<<endl;
     return 0;
 }

@@ -1,3 +1,6 @@
+#ifndef filesys
+#define filesys
+
 #include <bits/stdc++.h>
 #include <unistd.h>
 
@@ -44,3 +47,5 @@ struct superblock
 };
 
 extern struct superblock sblock;
+
+#endif
