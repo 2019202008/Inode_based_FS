@@ -1,5 +1,6 @@
 #include "filewrite.h"
 #include "disk_ops.h"
+#include "fs_read.h"
 using namespace std;
 int main()
 {
@@ -111,6 +112,14 @@ int main()
         else if(choice == 12)
         {
             file_write_operation(dname);            
+        }
+        else if(choice == 13)
+        {
+            int fd1;
+            cout<<"Enter file descriptor:"<<endl;
+            cin>>fd1;
+            int x;
+            x=file_read(dname,fd1);            
         }
         else
         {
