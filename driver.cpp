@@ -1,10 +1,8 @@
 #include "filewrite.h"
 #include "disk_ops.h"
+#include "fs_read.h"
 using namespace std;
 int main()
-{        
-    string s="Customdisk"; 
-=======
 {
     cout<<"1: Create File System"<<endl;
     cout<<"2: Mount"<<endl;
@@ -20,7 +18,6 @@ int main()
     cout<<"12: file write"<<endl;
         
     string s="Customdisk.txt"; 
->>>>>>> f6a0212c095e090c59e6ead9f3092a78ae781504
 //    string f = "test.txt";   
 
     char dname[Buffer_Size];
@@ -34,17 +31,6 @@ int main()
         int choice;
         cout<<endl;
         cout<<"enter choice"<<endl;
-        cout<<"1: Create File System"<<endl;
-        cout<<"2: Mount"<<endl;
-        cout<<"3: Unmount"<<endl;
-        cout<<"4: Create File"<<endl;
-        cout<<"5: Open File"<<endl;
-        cout<<"6: close File"<<endl;
-        cout<<"7: delete File"<<endl;
-        cout<<"8: print file decriptor"<<endl;
-        cout<<"9: print bit map"<<endl;
-        cout<<"10: print inode"<<endl;
-        cout<<"11: print file inode position map"<<endl;
         cin>>choice;
         if(choice==1)   {
         cout << make_fs(dname);
@@ -126,6 +112,14 @@ int main()
         else if(choice == 12)
         {
             file_write_operation(dname);            
+        }
+        else if(choice == 13)
+        {
+            int fd1;
+            cout<<"Enter file descriptor:"<<endl;
+            cin>>fd1;
+            int x;
+            x=file_read(dname,fd1);            
         }
         else
         {
