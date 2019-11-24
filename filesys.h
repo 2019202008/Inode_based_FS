@@ -12,6 +12,7 @@
 #define num_of_inodes 5
 #define number_of_blocks_for_data 10
 #define Buffer_Size 50
+#define num_of_inode_pointer 5
 
 using namespace std;
 struct file_inode_position
@@ -27,10 +28,12 @@ struct inode
     string filename;
     ll filesize;
     ll block_ptr[num_of_direct_pointer];
+    ll inodepointer[num_of_inode_pointer];
     struct inode* indirect_ptr[2];
-    bool indirect_ptr_present;
-    inode() {
-        indirect_ptr_present=false;
+    bool indirect_data_ptr_present, is_directory;
+    inode(){
+        is_directory = false;
+        indirect_data_ptr_present = true;
     }
 };
 
