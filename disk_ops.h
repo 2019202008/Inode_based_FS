@@ -20,9 +20,16 @@ int make_fs(char* disk_name)
 
     disk_ptr = fopen(disk_name,"w");
 
+    fseek(disk_ptr, 0, SEEK_SET);
+    
+    for(ll i = 0; i < block_size; i++)
+    {
+        buf[i] = 0;
+    }
+
     for(ll i =0; i<num_of_blocks; i++)
     {
-         fwrite(buf, 0, block_size, disk_ptr);
+         fwrite(buf, sizeof(char), block_size, disk_ptr);
     }
     
     for(ll i=0; i<num_of_inodes; i++)
