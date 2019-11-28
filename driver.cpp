@@ -28,7 +28,8 @@ int main()
     cout<<"22: file read for gui"<<endl;
     cout<<"23: show gui"<<endl;
     cout<<"24: Copy files"<<endl;
-    cout<<"25: print current working directory"<<endl;
+    cout<<"25: file seek"<<endl;
+    cout<<"26: print current working directory"<<endl;
         
     string s="Customdisk"; 
 //    string f = "test.txt";   
@@ -184,7 +185,7 @@ int main()
 	            cin>>fdes;	
 	            cout<<"Enter position"<<endl;	
 	            cin>>position;	
-	            file_seek(fdes, position);	
+	            file_seek(fdes, position, dname);	
 	        }	
 	        else if(choice == 22)	
 	        {	
@@ -214,7 +215,14 @@ int main()
             cin>>destination;
             copy_files(filename, destination);
         }
-        else if(choice == 25)
+
+        else if(choice==25) {
+            int fdes; ll position;
+            cout << "Please enter file descriptor and position ";
+            cin >> fdes >> position;
+            file_seek(fdes, position, dname);
+        }
+        else if(choice == 26)
         {
             print_cwd();
         }
