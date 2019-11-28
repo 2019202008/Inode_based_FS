@@ -32,9 +32,9 @@ int file_read(char *disk_name,int fd)
         
     //   cout<<"disk_ptr: "<<disk_ptr<<endl;	
     for(int aoin=0; aoin<10; aoin++){	
-        cout << array_of_inodes[aoin].filesize << " ";	
+ //       cout << array_of_inodes[aoin].filesize << " ";	
     }	
-    cout << endl;	
+ //   cout << endl;	
     struct inode in1 = array_of_inodes[id];	
     ll fs = in1.filesize;	
     //   cout<<"fs: "<<fs<<endl;	
@@ -100,7 +100,7 @@ int file_read(char *disk_name,int fd)
     
     
         }	
-    cout << endl;	
+ //   cout << endl;	
     if(str.length() <= fs){	
         for(int node=0; node<num_of_inode_pointer; node++){	
             // cout << in1.inodepointer[node] << " " ;	
@@ -108,7 +108,7 @@ int file_read(char *disk_name,int fd)
     }	
     fs = in1.filesize - str.length();int c=0;	
     while(fs > 0 && in1.inodepointer[c]!= -1){	
-        cout << "c" << c << " "; 	
+ //       cout << "c" << c << " "; 	
         struct inode tmp = array_of_inodes[in1.inodepointer[c++]];	
         ll *bptr;	
         bool flag1 = false;	
@@ -162,7 +162,7 @@ int file_read(char *disk_name,int fd)
         }       	
         fs = in1.filesize - str.length();	
     }	
-    cout<<"final: "<<str<<endl;	
+    cout<<str<<endl;	
     fclose(disk_ptr);	
     return fs;    	
 }	
@@ -314,7 +314,7 @@ string file_read_for_gui(char *disk_name, int fd)
         }       
         fs = in1.filesize - str.length();
     }
-    cout<<"final: "<<str<<endl;
+//    cout<<str<<endl;
     fclose(disk_ptr);
     return str; 
 }

@@ -3,6 +3,7 @@
 
 #include "filesys.h"
 #include "fs_read.h"
+#include "filewrite.h"
 
 static int isactive;
 struct superblock sblock;
@@ -106,6 +107,7 @@ int mount_fs(char* disk_name)
 
     if (disk_ptr == NULL)
     {
+        cout<<"Unablt to mount"<<endl;
         return 0;
     }
 
@@ -159,17 +161,20 @@ int umount_fs(char *disk_name)
     int len;
     if (!isactive)
     {
+        cout<<"disk is already unmounted"<<endl;
         return 0;
     }
 
     if(access(disk_name,F_OK) == -1)
     {
+        cout<<"Unable to access disk"<<endl;
         return 0;
     }
 
     disk_ptr = fopen(disk_name, "w");
     if (disk_ptr == NULL)
     {
+        cout<<"unable to unmount"<<endl;
         return 0;
     }
 
@@ -247,7 +252,7 @@ int fs_create(char *name)
 
     if(is_root_present == 0)
     {
-        cout<<"here"<<endl;
+//        cout<<"here"<<endl;
         struct inode_directory i_directory;
 
         i_directory.parent = "root";
@@ -269,6 +274,7 @@ int fs_create(char *name)
 
     if(is_inode_free == 0)
     {
+        cout<<"no free inodes"<<endl;
         return -1;
     }
 
@@ -284,6 +290,7 @@ int fs_create(char *name)
 
     if(is_data_block_free == 0)
     {
+        cout<<"No free data blocks"<<endl;
         return -1;
     }
 
@@ -344,6 +351,7 @@ int fs_open(char *name)
 
     if(is_file_present == 0)
     {
+        cout<<"file not found"<<endl;
         return -1;
     }
 
@@ -359,6 +367,7 @@ int fs_open(char *name)
 
     if(is_filedescriptor_free == 0)
     {
+        cout<<"no free file descriptor"<<endl;
         return -1;
     }
 
@@ -366,7 +375,7 @@ int fs_open(char *name)
     cout<<"Please enter file open mode"<<endl;
     cin>>mode;
 
-    if(mode == "w" || mode == "a")
+    if(mode == "w")
     {
         for(auto i = sblock.file_inode_position_map.begin(); i != sblock.file_inode_position_map.end(); i++)
         {
@@ -380,6 +389,7 @@ int fs_open(char *name)
 
     if(is_file_already_open == 1)
     {
+        cout<<"The file is already open in write mode"<<endl;
         return -1;
     }
 
@@ -411,6 +421,140 @@ int fs_open(char *name)
     return 1;
 }
 
+int fs_create_for_copy(char *name,string filepath)
+{
+    int is_inode_free = 0;
+    int is_root_present = 0;
+    int is_directory_present = 0;
+    int is_data_block_free = 0;
+    ll free_inode_num = -1;
+    ll free_data_block_num = -1;
+    string filename = string(name);
+
+//    cout<<"fs create for copy "<<filename<<" "<<filepath<<endl;
+    for(ll i=0; i< num_of_inodes; i++)
+    {
+        if(inode_bmap[i] == false)
+        {
+            is_inode_free = 1;
+            free_inode_num = i;
+            break;
+        }
+    }
+
+    if(is_inode_free == 0)
+    {
+        return -1;
+    }
+
+    for(ll i=0; i< number_of_blocks_for_data; i++)
+    {
+        if(data_bmap[i] == false)
+        {
+            is_data_block_free = 1;
+            free_data_block_num = i;
+            break;
+        }
+    }
+
+    if(is_data_block_free == 0)
+    {
+        return -1;
+    }
+
+    struct inode ide;
+
+    ide.filename = filename;
+    ide.filepath = filepath;
+    ide.filesize = 0;
+    ide.is_directory = false;
+    ide.block_ptr[0] = free_data_block_num;
+    for(ll i =1; i<num_of_direct_pointer; i++)
+    {
+        ide.block_ptr[i] = -1;
+    }
+
+    array_of_inodes[free_inode_num] = ide;
+    inode_bmap[free_inode_num] = true;
+    data_bmap[free_data_block_num] = true;
+
+    vector<inode_directory>::iterator it,dit;
+    for(it = sblock.directory.begin(); it != sblock.directory.end(); it++)
+    {
+        if((*it).path == filepath)
+        {
+            is_directory_present = 1;
+            dit = it;
+            break;
+        }
+    }
+
+    if(is_directory_present == 1)
+    {
+//        cout<<"dit "<<(*dit).path<<endl;
+        (*dit).sub_directory_or_file_name.push_back(filename);
+    }
+
+    return 1;
+}
+
+int fs_open_for_copy(char* name, string file_path)
+{
+    string filename = string(name);
+    int is_file_present = 0;
+    ll file_inode_num = -1;
+    int is_filedescriptor_free = 0;
+    ll file_descriptor_num = -1;
+    int is_file_already_open = 0;
+    string filepath = "";
+
+    for(ll i = 0; i<num_of_inodes; i++)
+    {
+        if(array_of_inodes[i].filename == filename && array_of_inodes[i].filepath == file_path)
+        {
+            is_file_present = 1;
+            file_inode_num = i;
+            break;
+        }
+    }
+
+    if(is_file_present == 0)
+    {
+        return -1;
+    }
+
+    for(ll i = 0; i<num_of_fd; i++)
+    {
+        if(sblock.filedescriptor_bmap[i] == false)
+        {
+            is_filedescriptor_free = 1;
+            file_descriptor_num = i;
+            break;
+        }
+    }
+
+    if(is_filedescriptor_free == 0)
+    {
+        return -1;
+    }
+
+    string mode = "w";
+
+    filepath = file_path+"/"+filename;
+    file_descriptors[file_descriptor_num] = filepath;
+
+    struct file_inode_position f_i_p_map;
+    f_i_p_map.inodeid = file_inode_num;
+    f_i_p_map.fd = file_descriptor_num;
+    f_i_p_map.position = 0;
+    f_i_p_map.mode = mode;
+    sblock.file_inode_position_map.push_back(f_i_p_map);
+
+    sblock.filedescriptor_bmap[file_descriptor_num] = true;
+    
+    return file_descriptor_num;
+}
+
 int fs_close(int filedes)
 {
     ll is_file_descriptor_open = 0;
@@ -428,6 +572,7 @@ int fs_close(int filedes)
 
     if(is_file_descriptor_open == 0)
     {
+        cout<<"File descriptor not found"<<endl;
         return -1;
     }
 
@@ -479,6 +624,7 @@ int fs_delete(char *name)
 
     if(is_file_present == 0)
     {
+        cout<<"File not found"<<endl;
         return -1;
     }
 
@@ -495,6 +641,7 @@ int fs_delete(char *name)
 
     if(is_file_open == 1)
     {
+        cout<<"the file is open"<<endl;
         return -1;
     }
 
@@ -518,6 +665,27 @@ int fs_delete(char *name)
 
         reset_inode(inode_num);
     }
+
+    vector<inode_directory>::iterator it,dit;
+    vector<string>::iterator tempit;
+    for(it = sblock.directory.begin(); it != sblock.directory.end(); it++)
+    {
+        if((*it).path == path)
+        {
+            vector<string>::iterator sit;
+            for(sit = (*it).sub_directory_or_file_name.begin(); sit != (*it).sub_directory_or_file_name.end(); sit++)
+            {
+                if((*sit) == filename)
+                {
+                    tempit = sit;
+                    dit = it;
+                    break;
+                }
+            }
+        }
+    }
+
+    (*dit).sub_directory_or_file_name.erase(tempit);
     
     return 1;
 }
@@ -545,7 +713,7 @@ int create_directory(string directory_name)
 
     if(is_root_present == 0)
     {
-        cout<<"create directory"<<endl;
+ //       cout<<"create directory"<<endl;
         struct inode_directory i_directory;
 
         i_directory.parent = "root";
@@ -567,6 +735,7 @@ int create_directory(string directory_name)
 
     if(ispresent == 1)
     {
+        cout<<"same direcory present"<<endl;
         return -1;
     }
 
@@ -582,6 +751,7 @@ int create_directory(string directory_name)
 
     if(is_inode_free == 0)
     {
+        cout<<"No inode free"<<endl;
         return -1;
     }
 
@@ -682,6 +852,7 @@ int change_directory(string new_path)
 
     if(ispresent == 0)
     {
+        cout<<"Unable to change directory"<<endl;
         return -1;
     }
 
@@ -723,7 +894,7 @@ int fs_open_forgui(char *name)
             break;
         }
     }
-    cout<<"in 724"<<endl;
+//    cout<<"in 724"<<endl;
     if(is_filedescriptor_free == 0)
     {
         return -1;
@@ -742,8 +913,8 @@ int fs_open_forgui(char *name)
     sblock.file_inode_position_map.push_back(f_i_p_map);
 
     sblock.filedescriptor_bmap[file_descriptor_num] = true;
-    cout<<"before return from fs open"<<endl;
-    return 1;
+ //   cout<<"before return from fs open"<<endl;
+    return file_descriptor_num;
 }
 
 string file_read_fromgui(string path1, string filename)
@@ -761,16 +932,16 @@ string file_read_fromgui(string path1, string filename)
             break;
         }
     }
-
+//    cout<<"here 882"<<endl;
     if(ispresent == 0)
     {
         return "";
     }
 
-    char* name;
+    char name[Buffer_Size];
     strcpy(name, filename.c_str());
 //    cout<<"before fs open"<<endl;
-    int t = fs_open_forgui(name);
+    int file_des = fs_open_forgui(name);
 //    cout<<"before file inode position map"<<endl;
     vector<file_inode_position>::iterator it;
     for(it = sblock.file_inode_position_map.begin(); it != sblock.file_inode_position_map.end(); it++)
@@ -785,18 +956,25 @@ string file_read_fromgui(string path1, string filename)
     string s = "Customdisk";
     char disk_name[Buffer_Size];
     strcpy(disk_name,s.c_str());
-//    cout<<"before file read"<<endl;
+//    cout<<"before file read "<<disk_name<<endl;
+    string content = file_read_for_gui(disk_name, fd);
 
-    return file_read_for_gui(disk_name, fd);
+    int t = fs_close(file_des);
+
+    return content;
 }
+
+
 
 int rename(string old_name, string new_name)
 {
     int is_directory_present = 0;
     string original_path = path + "/" + old_name;
+    string new_path = path + "/" + new_name;
     int last_index = -1;
     int temp_index = -1;
     string temp_path = "";
+    int is_present = 0;
 
     vector<inode_directory>::iterator it,tempdit;
     for(it = sblock.directory.begin(); it != sblock.directory.end(); it++)
@@ -828,6 +1006,7 @@ int rename(string old_name, string new_name)
 
         (*tempdit).directory_name = new_name;
         (*tempdit).path = temp_path; */
+        cout<<"Unable to rename"<<endl;
         return -1;
     }
     
@@ -836,6 +1015,36 @@ int rename(string old_name, string new_name)
         if(array_of_inodes[i].filepath == path && array_of_inodes[i].filename == old_name)
         {
             array_of_inodes[i].filename = new_name;
+        }
+    }
+
+    vector<inode_directory>::iterator it,dit;
+    vector<string>::iterator tempit;
+    for(it = sblock.directory.begin(); it != sblock.directory.end(); it++)
+    {
+        if((*it).path == path)
+        {
+            vector<string>::iterator sit;
+            for(sit = (*it).sub_directory_or_file_name.begin(); sit != (*it).sub_directory_or_file_name.end(); sit++)
+            {
+                if((*sit) == old_name)
+                {
+                    tempit = sit;
+                    dit = it;
+                    break;
+                }
+            }
+        }
+    }
+
+    (*dit).sub_directory_or_file_name.erase(tempit);
+    (*dit).sub_directory_or_file_name.push_back(new_name);
+
+    for(ll i =0; i< num_of_fd; i++)
+    {
+        if(file_descriptors[i] == original_path)
+        {
+            file_descriptors[i] = new_path;
         }
     }
 
@@ -859,6 +1068,7 @@ int file_seek(int fdes, ll position)
 
     if(ispresent == 0)
     {
+        cout<<"Unable to fseek"<<endl;
         return -1;
     }
 
@@ -869,6 +1079,7 @@ int file_seek(int fdes, ll position)
 
     if(array_of_inodes[(*fit).inodeid].filesize < position)
     {
+        cout<<"Fseek not poossible"<<endl;
         return -1;
     }
 
@@ -917,9 +1128,18 @@ int move(string source,string destination)
 
     if(ispresent == 0)
     {
+        cout<<"File not found"<<endl;
         return -1;
     }
 
+    for(ll i = 0; i<num_of_fd; i++)
+    {
+        if(file_descriptors[i] == source)
+        {
+            cout<<"File is open"<<endl;
+            return -1;
+        }
+    }
  //   cout<<"source present checked"<<endl;
 
     vector<inode_directory>::iterator it,temdit;
@@ -935,6 +1155,7 @@ int move(string source,string destination)
 
     if(is_destination_present == 0)
     {
+        cout<<"Destination not found"<<endl;
         return -1;
     }
 
@@ -942,6 +1163,7 @@ int move(string source,string destination)
 
     if(source == "root")
     {
+        cout<<"Unable to move file"<<endl;
         return -1;
     }
 
@@ -958,7 +1180,7 @@ int move(string source,string destination)
         temp_name = temp_name + source[i];
     }
 
-    cout<<"temp name "<<temp_name<<endl;
+//    cout<<"temp name "<<temp_name<<endl;
 
     for(auto it = (*temdit).sub_directory_or_file_name.begin(); it != (*temdit).sub_directory_or_file_name.end(); it++)
     {
@@ -971,6 +1193,7 @@ int move(string source,string destination)
 
     if(isduplicate == 1)
     {
+        cout<<"Unable to move file"<<endl;
         return -1;
     }
 
@@ -980,12 +1203,13 @@ int move(string source,string destination)
        
     if(isdirectory == true)
     {
+        cout<<"Unable to move file"<<endl;
         return -1;
     }
     else
     {
-        cout<<"destination "<<destination<<endl;
-        cout<<"tem dit "<<(*temdit).directory_name<<endl;
+//        cout<<"destination "<<destination<<endl;
+//        cout<<"tem dit "<<(*temdit).directory_name<<endl;
 
         (*temdit).sub_directory_or_file_name.push_back(temp_name);
         
@@ -1000,7 +1224,7 @@ int move(string source,string destination)
                 {
                     if((*it2) == temp_name)
                     {
-                        cout<<"it2 "<<(*it2)<<endl;
+//                        cout<<"it2 "<<(*it2)<<endl;
                         (*it1).sub_directory_or_file_name.erase(it2);
                         break;
                     }
@@ -1011,6 +1235,11 @@ int move(string source,string destination)
     }
 
     return 1; 
+}
+
+void print_cwd()
+{
+    cout<<"PATH: "<<path<<endl;
 }
 
 void ptintfd()
@@ -1097,5 +1326,153 @@ void printfilesdirectories(string pathname)
         }    
         cout<<endl;
     }
+}
+
+int copy_files(string filename, string filepath)
+{
+    int is_file_present = 0;
+    int is_directory_present = 0;
+    int temp_inode_index = -1;
+
+    for(ll i =0; i<num_of_inodes; i++)
+    {
+        if(array_of_inodes[i].filepath == path && array_of_inodes[i].filename == filename)
+        {
+            is_file_present = 1;
+            temp_inode_index = i;
+            break;
+        }
+    }
+//    cout<<"here 929"<<endl;
+    if(is_file_present == 0)
+    {
+        cout<<"File not found"<<endl;
+        return -1;
+    }
+
+    if(array_of_inodes[temp_inode_index].is_directory == true)
+    {
+        cout<<"Unable to copy"<<endl;
+        return -1;
+    }
+
+    vector<inode_directory>::iterator it;
+    for(it = sblock.directory.begin(); it != sblock.directory.end(); it++)
+    {
+        if((*it).path == filepath)
+        {
+            is_directory_present = 1;
+            break;
+        }
+    }
+//    cout<<"here 949"<<endl;
+    if(is_directory_present == 0)
+    {
+        cout<<"Destination not found"<<endl;
+        return -1;
+    }
+
+    if(filepath == array_of_inodes[temp_inode_index].filepath)
+    {
+        string content = file_read_fromgui(path, filename);
+ //       cout<<"content "<<content<<endl;
+        string new_filename = filename + "(copy)";
+        char buffer[Buffer_Size];
+        strcpy(buffer,new_filename.c_str());
+ //       cout<<"copy 962"<<endl;
+        int t = fs_create_for_copy(buffer,filepath);
+ //       cout<<"here 964"<<endl;
+        if(t == -1)
+        {
+            cout<<"Unable to copy"<<endl;
+            return -1;
+        }
+        int file_des = fs_open_for_copy(buffer,filepath);
+ //       cout<<"here 970"<<endl;
+        string disk_name = "Customdisk";
+        char disk_name_buffer[Buffer_Size];
+        strcpy(disk_name_buffer, disk_name.c_str());
+//        cout<<"here 974 "<<disk_name_buffer<<endl;
+        int s = file_write(file_des,content,disk_name_buffer);
+ //       cout<<"here 976"<<endl;
+        if(s == -1)
+        {
+            cout<<"Unable to copy"<<endl;
+            return -1;
+        }
+        fs_close(file_des);
+ //       cout<<"here 982"<<endl;
+    }
+    else
+    {
+        int is_file_present = 0;
+//        cout<<"filepath "<<filepath<<" filename "<<filename<<endl;
+        string content = file_read_fromgui(path, filename);
+ //       cout<<"here 989 "<<content<<endl;
+        vector<inode_directory>::iterator it;
+        for(it = sblock.directory.begin(); it!= sblock.directory.end(); it++)
+        {
+            if((*it).path == filepath)
+            {
+ //               cout<<"here 995"<<endl;
+                vector<string>::iterator sit;
+                for(sit = (*it).sub_directory_or_file_name.begin(); sit != (*it).sub_directory_or_file_name.end(); sit++)
+                {
+  //                  cout<<"here 998"<<endl;
+                    if((*sit) == filename)
+                    {
+                        is_file_present = 1;
+                        break;
+                    }
+                }
+            }
+            if(is_file_present == 1)
+            {
+                break;
+            }
+        }
+
+        if(is_file_present == 1)
+        {
+            filename = filename + "(copy)";
+        }
+
+        char buffer[Buffer_Size];
+        strcpy(buffer,filename.c_str());
+//        cout<<"here 1019 "<<buffer<<endl;
+        int t = fs_create_for_copy(buffer,filepath);
+//        printfilesdirectories("root");
+ //       cout<<"here 1021"<<endl;
+        if(t == -1)
+        {
+            cout<<"Unable to copy"<<endl;
+            return -1;
+        }
+        int file_des = fs_open_for_copy(buffer,filepath);
+//        cout<<"here 1027"<<endl;
+        string disk_name = "Customdisk";
+//        cout<<"disk name "<<disk_name<<endl;
+        char disk_name_buffer[Buffer_Size];
+        strcpy(disk_name_buffer, disk_name.c_str());
+//        cout<<"here 1031 "<<file_des<<" "<<content<<" "<<disk_name_buffer<<endl;
+    /*    printbmap();
+        printfilesdirectories("root");
+        printinode();
+        pritfileinodemap();
+        printinodedirectory();
+        ptintfd(); */
+        int s = file_write(file_des,content,disk_name_buffer);
+//        cout<<"here 1033"<<endl;
+        if(s == -1)
+        {
+            cout<<"Unable to copy"<<endl;
+            return -1;
+        }
+        fs_close(file_des);
+//        cout<<"here 1039"<<endl;
+    }
+
+    return 1;
+    
 }
 #endif
