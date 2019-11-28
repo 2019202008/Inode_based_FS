@@ -842,10 +842,9 @@ int rename(string old_name, string new_name)
     return 1;
 }
 
-int file_seek(int fdes, ll position)
+int file_seek(int fdes, ll position, char *disk_name)
 {
     int ispresent = 0;
-
     vector<file_inode_position>::iterator it,fit;
     for(it = sblock.file_inode_position_map.begin(); it != sblock.file_inode_position_map.end(); it++)
     {
@@ -856,23 +855,89 @@ int file_seek(int fdes, ll position)
             break;
         }
     }
-
     if(ispresent == 0)
     {
         return -1;
     }
-
     if((*fit).mode == "w" || (*fit).mode == "a")
     {
         return -1;
     }
-
     if(array_of_inodes[(*fit).inodeid].filesize < position)
     {
         return -1;
     }
-
+    ll fs=array_of_inodes[(*fit).inodeid].filesize;
+    int inodenum = (*fit).inodeid;
     (*fit).position = position;
+    FILE *disk_ptr;	
+    disk_ptr = fopen(disk_name,"r");
+    ll base_index =(sblock.num_of_blocks_for_sb + 	
+                    sblock.number_of_blocks_for_data_bmap + 	
+                    sblock.num_of_blocks_for_inode_bmap +	
+                    num_of_inodes) * block_size;	
+    fseek(disk_ptr, base_index, SEEK_SET);	
+    struct inode in1 = array_of_inodes[inodenum];
+    ll *bptr;	
+    bool flag1 = false;	
+    bptr=new ll[num_of_direct_pointer];	
+    bptr = in1.block_ptr;
+    ll no_of_blocks = ceil(fs*1.0/block_size);    	
+    int count=0;	
+    // ll relative_index = base_index + block_size * bptr[count];
+    // fseek(disk_ptr, relative_index, SEEK_SET);
+    char read_buf[block_size+2];  	
+    cout << ftell(disk_ptr) << endl;
+    int dpointers=0;
+    while(no_of_blocks>0 && dpointers<5){    
+        if(position <= 0){
+            break;
+        }        
+        ll relative_index = base_index + block_size * bptr[dpointers++];
+        fseek(disk_ptr, relative_index, SEEK_SET);
+        memset(read_buf, '\0', block_size); 
+        int seekval = (block_size <= position) ? block_size : position;   
+        size_t result; 
+        result = fread(read_buf, sizeof(char), seekval , disk_ptr);
+        string sbuf(read_buf);    
+        // read_buf[sbuf.length()] = '\0';
+        cout << read_buf << endl;
+        cout << result << endl;
+        cout << ftell(disk_ptr) << " ";                    
+        position-=result;
+        // sbuf.length(); 
+        no_of_blocks--;       
+    }
+    int cnt=0;
+    while(in1.inodepointer[cnt]!= -1){	
+        dpointers=0;
+        struct inode tmp = array_of_inodes[in1.inodepointer[cnt++]];	
+        bptr = tmp.block_ptr;
+        count=0;
+        ll relative_index = base_index + block_size * bptr[count];
+        fseek(disk_ptr, relative_index, SEEK_SET);
+        cout << ftell(disk_ptr) << endl;
+        while(no_of_blocks>0 && dpointers<5){    
+            if(position <= 0){
+                break;
+            }
+            dpointers++;
+            memset(read_buf, '\0', block_size); 
+            int seekval = (block_size <= position) ? block_size : position;   
+            size_t result; 
+            result = fread(read_buf, sizeof(char), seekval , disk_ptr);
+            string sbuf(read_buf);    
+            // read_buf[sbuf.length()] = '\0';
+            cout << read_buf << endl;
+            cout << result << endl;
+            cout << ftell(disk_ptr) << " ";                    
+            position-=result;
+            // sbuf.length(); 
+            no_of_blocks--;       
+        }
+    }
+    fclose(disk_ptr);
+    cout << endl;
     return 1;
 }
 
