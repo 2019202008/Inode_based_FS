@@ -39,14 +39,14 @@ int find_next_free_inode_block(int index){
 void fillInode( ll &blocks_to_write, ll &base_index ,ll &relative_index, struct inode temp,
                 int &k, char *arr, FILE *disk_ptr, int &baseinode,
                 int &p){
-//    cout << "blocks_to_write " << blocks_to_write << " base_index " << base_index <<
-//            " relative_index " << relative_index << " k " << k << " baseinode " << baseinode << endl;
+    cout << "blocks_to_write " << blocks_to_write << " base_index " << base_index <<
+            " relative_index " << relative_index << " k " << k << " baseinode " << baseinode << endl;
     int c=0, z=0, sz=0;
     int fb = temp.block_ptr[0];
     char buff[block_size+1];    
     for(int i=0; i<blocks_to_write; i++){
         temp.block_ptr[c++] = fb;
- //       cout << relative_index << " z = " << z << " fb " << fb << endl;
+        cout << relative_index << " z = " << z << " fb " << fb << endl;
         fseek(disk_ptr, relative_index, SEEK_SET);
         memset(buff, '\0', block_size);        
         sz = min(block_size, k);
@@ -54,13 +54,12 @@ void fillInode( ll &blocks_to_write, ll &base_index ,ll &relative_index, struct 
         strncpy(buff, arr+z, sz);
         buff[block_size]='\0';        
         z+=sz;
-//        cout << buff << endl;
+        cout << buff << endl;
             fwrite(buff, sizeof(char), sizeof(buff)-1, disk_ptr);             
         data_bmap[fb] = true;
         int pos = find_next_free_data_block(fb);
         if(pos == -1){
-//            cout << "No data blocks left ";
-            break;
+            cout << "No data blocks left ";break;
         }
         relative_index = base_index + block_size * pos;
         fb = pos;        
@@ -69,7 +68,7 @@ void fillInode( ll &blocks_to_write, ll &base_index ,ll &relative_index, struct 
     // cout << z << endl;
     temp.filesize = z;
     array_of_inodes[baseinode] = temp;
-    sblock.file_inode_position_map[p].position = z;
+    // sblock.file_inode_position_map[p].position = z;
     inode_bmap[baseinode]=true;
     // cout << p << " FIP " <<sblock.file_inode_position_map[p].position << endl;
     // for(auto it:sblock.file_inode_position_map)    {
@@ -82,7 +81,7 @@ int file_write(int fd, string s, char* disk_name){
     int len = s.length();int p=0;
     bool fdfound=false;
     struct file_inode_position fpos;
-    int baseinode;
+    int baseinode=0;
     for(auto x=sblock.file_inode_position_map.begin(); x!=sblock.file_inode_position_map.end(); x++){
         if(fd == (*x).fd && strcmp((*x).mode.c_str(), "w")==0){
             fpos = (*x);
@@ -131,16 +130,16 @@ int file_write(int fd, string s, char* disk_name){
         cout << len << endl;
         int number_of_inodes_required = int(ceil(blocks_to_write*1.0/num_of_direct_pointer));
         // cout << endl << base_index << " " << relative_index << endl;
-//        cout << "number_of_inodes_required "<<number_of_inodes_required << endl;
+        cout << "number_of_inodes_required "<<number_of_inodes_required << endl;
         vector <int> inodes_for_indirect_write_arr;         
-//        cout << "baseinode " <<baseinode << endl;     
+        cout << "baseinode " <<baseinode << endl;     
         // inodes_for_indirect_write_arr.push_back(baseinode);
         int val=number_of_inodes_required;int fd1=baseinode;
         while(val--){
             inodes_for_indirect_write_arr.push_back(baseinode);
             baseinode=find_next_free_inode_block(baseinode);
         }
- //       cout << "inodes_for_indirect_write_arr.size()" << inodes_for_indirect_write_arr.size()<<endl;
+        cout << "inodes_for_indirect_write_arr.size()" << inodes_for_indirect_write_arr.size()<<endl;
         if(inodes_for_indirect_write_arr.size() < number_of_inodes_required){
             cout << "Not enough space to write file" << endl;
             return -1;
@@ -171,11 +170,11 @@ int file_write(int fd, string s, char* disk_name){
             else{
                 x=blocks_to_write;
             }
- //           cout << "BTW " << x << endl;               
+            cout << "BTW " << x << endl;               
             ll relative_index = base_index + block_size * temp.block_ptr[0];    
             fseek(disk_ptr, relative_index, SEEK_SET);            
-  //          cout<< "JMP "<< jmp << " relative_index "<< relative_index 
- //               << " temp.block_ptr[0] " << temp.block_ptr[0]<< " k "<< k << endl;
+            cout<< "JMP "<< jmp << " relative_index "<< relative_index 
+                << " temp.block_ptr[0] " << temp.block_ptr[0]<< " k "<< k << endl;
             fillInode(x, base_index, relative_index,
                     temp, k, arr+jmp, disk_ptr, inodes_for_indirect_write_arr[i], p);  
             jmp=x*block_size;           
@@ -185,17 +184,22 @@ int file_write(int fd, string s, char* disk_name){
         array_of_inodes[baseinode].filesize = s.length();
         sblock.file_inode_position_map[p].position = s.length();
     }
-    fclose(disk_ptr);    
+    fclose(disk_ptr);  
+    ll fs2 = sblock.file_inode_position_map[p].position; 
+    cout<< "p" << p<< "fs2: "<<fs2<<endl; 
     return 1;
 }
 void file_write_operation(char* disk_name){
     cout << "Please enter the file descriptor ";
     int fd;
     cin>> fd;
+    // getline(cin,st);
     cout << endl;
     cout << "Enter text to write ";
     string str;
     cin >> str;
+    // getline(cin, str);
+    // gets(str);
     int mode  = file_write(fd, str, disk_name);
     if(mode == -1){
         cout << "Cant write in file " << endl; 

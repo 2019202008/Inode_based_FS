@@ -1,7 +1,8 @@
 #include "filewrite.h"
 #include "disk_ops.h"
 #include "fs_read.h"
-//using namespace std;
+#include "my_gui.h"
+using namespace std;
 int main()
 {
     cout<<"1: Create File System"<<endl;
@@ -22,8 +23,9 @@ int main()
     cout<<"17: Move"<<endl;
     cout<<"18: change directory"<<endl;
     cout<<"19: print inode directory"<<endl;
-    cout<<"20: print files under directory"<<endl;
-    cout<<"21: file  seek"<<endl;
+    cout<<"23: show gui"<<endl;
+    cout<<"20: print files under directory"<<endl;	
+    cout<<"21: file  seek"<<endl;	
     cout<<"22: file read for gui"<<endl;
         
     string s="Customdisk"; 
@@ -134,13 +136,6 @@ int main()
             cin>>directory_name;
             cout<<create_directory(directory_name)<<endl;
         }
-        /*else if(choice == 15)
-        {
-            string directory_name;
-            cout<<"Enter directory name"<<endl;
-            cin>>directory_name;
-            delete_directory(directory_name);
-        } */
         else if(choice == 16)
         {
             string old_name;
@@ -172,30 +167,40 @@ int main()
         {
             printinodedirectory();
         }
-        else if(choice == 20)
-        {
-            string path;
-            cout<<"enter path"<<endl;
-            cin>>path;
-            printfilesdirectories(path);
-        }
-        else if(choice == 21)
-        {
-            int fdes;
-            ll position;
-            cout<<"Enter file descriptor"<<endl;
-            cin>>fdes;
-            cout<<"Enter position"<<endl;
-            cin>>position;
-            file_seek(fdes, position);
-        }
-        else if(choice == 22)
-        {
-            string path;
-            string filename;
-            cin>>path;
-            cin>>filename;
-            cout<<file_read_fromgui(path, filename)<<endl;
+                else if(choice == 20)	
+	        {	
+	            string path;	
+	            cout<<"enter path"<<endl;	
+	            cin>>path;	
+	            printfilesdirectories(path);	
+	        }	
+	        else if(choice == 21)	
+	        {	
+	            int fdes;	
+	            ll position;	
+	            cout<<"Enter file descriptor"<<endl;	
+	            cin>>fdes;	
+	            cout<<"Enter position"<<endl;	
+	            cin>>position;	
+	            file_seek(fdes, position);	
+	        }	
+	        else if(choice == 22)	
+	        {	
+	            string path;	
+	            string filename;	
+	            cin>>path;	
+	            cin>>filename;	
+	            cout<<file_read_fromgui(path, filename)<<endl;
+            }
+        else if(choice==23) {
+            int returned=0;
+            while(1)    {
+                returned=showgui();
+                if(returned==1) {
+                    returned=0;
+                    break;
+                }
+            }
         }
         else
         {

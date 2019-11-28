@@ -4,13 +4,13 @@
 #include <bits/stdc++.h>
 #include <unistd.h>
 
-#define block_size 1024
-#define num_of_blocks 20
-#define num_of_fd 5
-#define ll long long int
-#define num_of_direct_pointer 2
-#define num_of_inodes 5
-#define number_of_blocks_for_data 10
+#define block_size 512	
+#define num_of_blocks 2*20	
+#define num_of_fd 3	
+#define ll long long int	
+#define num_of_direct_pointer 5	
+#define num_of_inodes 2*5	
+#define number_of_blocks_for_data 2*10
 #define Buffer_Size 50
 #define num_of_inode_pointer 5
 #define num_of_indirect_pointers 2
@@ -47,6 +47,12 @@ struct inode
     inode(){
         is_directory = false;
         indirect_data_ptr_present = true;
+        for(int i=0; i<num_of_inode_pointer; i++){	
+            inodepointer[i]=-1;	
+        }	
+        for(int i=0; i<num_of_direct_pointer; i++){	
+            block_ptr[i]=-1;	
+        }
     }
 };
 
