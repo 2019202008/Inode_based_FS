@@ -1018,19 +1018,19 @@ int rename(string old_name, string new_name)
         }
     }
 
-    vector<inode_directory>::iterator it,dit;
+    vector<inode_directory>::iterator it1,dit;
     vector<string>::iterator tempit;
-    for(it = sblock.directory.begin(); it != sblock.directory.end(); it++)
+    for(it1 = sblock.directory.begin(); it1 != sblock.directory.end(); it1++)
     {
-        if((*it).path == path)
+        if((*it1).path == path)
         {
             vector<string>::iterator sit;
-            for(sit = (*it).sub_directory_or_file_name.begin(); sit != (*it).sub_directory_or_file_name.end(); sit++)
+            for(sit = (*it1).sub_directory_or_file_name.begin(); sit != (*it1).sub_directory_or_file_name.end(); sit++)
             {
                 if((*sit) == old_name)
                 {
                     tempit = sit;
-                    dit = it;
+                    dit = it1;
                     break;
                 }
             }
