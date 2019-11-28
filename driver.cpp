@@ -1,7 +1,7 @@
 #include "filewrite.h"
 #include "disk_ops.h"
 #include "fs_read.h"
-using namespace std;
+//using namespace std;
 int main()
 {
     cout<<"1: Create File System"<<endl;
@@ -16,8 +16,17 @@ int main()
     cout<<"10: print inode"<<endl;
     cout<<"11: print file inode position map"<<endl;
     cout<<"12: file write"<<endl;
+    cout<<"13: file read"<<endl;
+    cout<<"14: Create directoryt"<<endl;
+    cout<<"16: Rename"<<endl;
+    cout<<"17: Move"<<endl;
+    cout<<"18: change directory"<<endl;
+    cout<<"19: print inode directory"<<endl;
+    cout<<"20: print files under directory"<<endl;
+    cout<<"21: file  seek"<<endl;
+    cout<<"22: file read for gui"<<endl;
         
-    string s="Customdisk.txt"; 
+    string s="Customdisk"; 
 //    string f = "test.txt";   
 
     char dname[Buffer_Size];
@@ -68,17 +77,14 @@ int main()
             char fname[Buffer_Size];
             strcpy(fname, f.c_str());
             int g = fs_open(fname);
-            write(0, to_string(g).c_str(), strlen(to_string(g).c_str()));
-            cout<<endl;
             cout<<"Open file "<<endl;
         }
         else if(choice == 6)
         {
             int fd;
+            cout<<"Enter file descriptor"<<endl;
             cin>>fd;
             int g = fs_close(fd);
-            write(0, to_string(g).c_str(), strlen(to_string(g).c_str()));
-            cout<<endl;
             cout<<"Close file "<<endl;
         }
         else if(choice == 7)
@@ -120,6 +126,76 @@ int main()
             cin>>fd1;
             int x;
             x=file_read(dname,fd1);            
+        }
+        else if(choice == 14)
+        {
+            string directory_name;
+            cout<<"Enter directory name"<<endl;
+            cin>>directory_name;
+            cout<<create_directory(directory_name)<<endl;
+        }
+        /*else if(choice == 15)
+        {
+            string directory_name;
+            cout<<"Enter directory name"<<endl;
+            cin>>directory_name;
+            delete_directory(directory_name);
+        } */
+        else if(choice == 16)
+        {
+            string old_name;
+            string new_name;
+            cout<<"Enter file or directory name to be renamed"<<endl;
+            cin>>old_name;
+            cout<<"Enter new name"<<endl;
+            cin>>new_name;
+            cout<<rename(old_name, new_name)<<endl;
+        }
+        else if(choice == 17)
+        {
+            string source;
+            string destination;
+            cout<<"Enter source"<<endl;
+            cin>>source;
+            cout<<"Enter destination"<<endl;
+            cin>>destination;
+            cout<<move(source,destination)<<endl;
+        }
+        else if(choice == 18)
+        {
+            string new_path;
+            cout<<"Enter the path"<<endl;
+            cin>>new_path;
+            cout<<change_directory(new_path)<<endl;
+        }
+        else if(choice == 19)
+        {
+            printinodedirectory();
+        }
+        else if(choice == 20)
+        {
+            string path;
+            cout<<"enter path"<<endl;
+            cin>>path;
+            printfilesdirectories(path);
+        }
+        else if(choice == 21)
+        {
+            int fdes;
+            ll position;
+            cout<<"Enter file descriptor"<<endl;
+            cin>>fdes;
+            cout<<"Enter position"<<endl;
+            cin>>position;
+            file_seek(fdes, position);
+        }
+        else if(choice == 22)
+        {
+            string path;
+            string filename;
+            cin>>path;
+            cin>>filename;
+            cout<<file_read_fromgui(path, filename)<<endl;
         }
         else
         {

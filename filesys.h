@@ -6,13 +6,14 @@
 
 #define block_size 1024
 #define num_of_blocks 20
-#define num_of_fd 3
+#define num_of_fd 5
 #define ll long long int
 #define num_of_direct_pointer 2
 #define num_of_inodes 5
 #define number_of_blocks_for_data 10
 #define Buffer_Size 50
 #define num_of_inode_pointer 5
+#define num_of_indirect_pointers 2
 
 using namespace std;
 struct file_inode_position
@@ -23,13 +24,25 @@ struct file_inode_position
     ll position;
 };
 
+struct inode_directory
+{
+    string parent;
+
+    string directory_name;
+
+    vector<string> sub_directory_or_file_name;
+
+    string path;
+};
+
 struct inode
 {
     string filename;
+    string filepath;
     ll filesize;
     ll block_ptr[num_of_direct_pointer];
     ll inodepointer[num_of_inode_pointer];
-    struct inode* indirect_ptr[2];
+    struct inode* indirect_ptr[num_of_indirect_pointers];
     bool indirect_data_ptr_present, is_directory;
     inode(){
         is_directory = false;
@@ -50,6 +63,8 @@ struct superblock
     ll number_of_blocks_for_data_bmap;
 
     vector <file_inode_position> file_inode_position_map;
+
+    vector<inode_directory> directory;
 
     bool filedescriptor_bmap[num_of_fd];
 
