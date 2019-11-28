@@ -23,12 +23,13 @@ int main()
     cout<<"17: Move"<<endl;
     cout<<"18: change directory"<<endl;
     cout<<"19: print inode directory"<<endl;
-    cout<<"23: show gui"<<endl;
     cout<<"20: print files under directory"<<endl;	
     cout<<"21: file  seek"<<endl;	
     cout<<"22: file read for gui"<<endl;
-    cout<<"24: file copy"<<endl;
+    cout<<"23: show gui"<<endl;
+    cout<<"24: Copy files"<<endl;
     cout<<"25: file seek"<<endl;
+    cout<<"26: print current working directory"<<endl;
         
     string s="Customdisk"; 
 //    string f = "test.txt";   
@@ -81,8 +82,6 @@ int main()
             char fname[Buffer_Size];
             strcpy(fname, f.c_str());
             int g = fs_open(fname);
-            write(0, to_string(g).c_str(), strlen(to_string(g).c_str()));
-            cout<<endl;
             cout<<"Open file "<<endl;
         }
         else if(choice == 6)
@@ -91,8 +90,6 @@ int main()
             cout<<"Enter file descriptor"<<endl;
             cin>>fd;
             int g = fs_close(fd);
-            write(0, to_string(g).c_str(), strlen(to_string(g).c_str()));
-            cout<<endl;
             cout<<"Close file "<<endl;
         }
         else if(choice == 7)
@@ -140,7 +137,7 @@ int main()
             string directory_name;
             cout<<"Enter directory name"<<endl;
             cin>>directory_name;
-            cout<<create_directory(directory_name)<<endl;
+            create_directory(directory_name);
         }
         else if(choice == 16)
         {
@@ -150,7 +147,7 @@ int main()
             cin>>old_name;
             cout<<"Enter new name"<<endl;
             cin>>new_name;
-            cout<<rename(old_name, new_name)<<endl;
+            rename(old_name, new_name);
         }
         else if(choice == 17)
         {
@@ -160,14 +157,14 @@ int main()
             cin>>source;
             cout<<"Enter destination"<<endl;
             cin>>destination;
-            cout<<move(source,destination)<<endl;
+            move(source,destination);
         }
         else if(choice == 18)
         {
             string new_path;
             cout<<"Enter the path"<<endl;
             cin>>new_path;
-            cout<<change_directory(new_path)<<endl;
+            change_directory(new_path);
         }
         else if(choice == 19)
         {
@@ -196,7 +193,7 @@ int main()
 	            string filename;	
 	            cin>>path;	
 	            cin>>filename;	
-	            cout<<file_read_fromgui(path, filename)<<endl;
+	            file_read_fromgui(path, filename);
             }
         else if(choice==23) {
             int returned=0;
@@ -208,11 +205,26 @@ int main()
                 }
             }
         }
+        else if(choice == 24)
+        {
+            string filename;
+            string destination;
+            cout<<"enter the filename"<<endl;
+            cin>>filename;
+            cout<<"enter the destination"<<endl;
+            cin>>destination;
+            copy_files(filename, destination);
+        }
+
         else if(choice==25) {
             int fdes; ll position;
             cout << "Please enter file descriptor and position ";
             cin >> fdes >> position;
             file_seek(fdes, position, dname);
+        }
+        else if(choice == 26)
+        {
+            print_cwd();
         }
         else
         {
