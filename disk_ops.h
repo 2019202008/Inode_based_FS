@@ -1051,7 +1051,7 @@ int rename(string old_name, string new_name)
     return 1;
 }
 
-int file_seek(int fdes, ll position, char *disk_name)
+ll file_seek(int fdes, ll position, char *disk_name)
 {
     int ispresent = 0;
     vector<file_inode_position>::iterator it,fit;
@@ -1100,6 +1100,7 @@ int file_seek(int fdes, ll position, char *disk_name)
     char read_buf[block_size+2];  	
     cout << ftell(disk_ptr) << endl;
     int dpointers=0;
+    ll fposition=0;
     while(no_of_blocks>0 && dpointers<5){    
         if(position <= 0){
             break;
@@ -1114,7 +1115,8 @@ int file_seek(int fdes, ll position, char *disk_name)
         // read_buf[sbuf.length()] = '\0';
         cout << read_buf << endl;
         cout << result << endl;
-        cout << ftell(disk_ptr) << " ";                    
+        fposition = ftell(disk_ptr);
+        cout << fposition << " ";
         position-=result;
         // sbuf.length(); 
         no_of_blocks--;       
@@ -1141,7 +1143,8 @@ int file_seek(int fdes, ll position, char *disk_name)
             // read_buf[sbuf.length()] = '\0';
             cout << read_buf << endl;
             cout << result << endl;
-            cout << ftell(disk_ptr) << " ";                    
+            fposition = ftell(disk_ptr); 
+            cout << fposition << " ";
             position-=result;
             // sbuf.length(); 
             no_of_blocks--;       
@@ -1149,7 +1152,7 @@ int file_seek(int fdes, ll position, char *disk_name)
     }
     fclose(disk_ptr);
     cout << endl;
-    return 1;
+    return fposition;
 }
 
 vector<string> list_files_directories(string directory_path)
@@ -1258,7 +1261,7 @@ int move(string source,string destination)
 
     if(isduplicate == 1)
     {
-        cout<<"Unable to move file"<<endl;
+        cout<<"Unable to move file because duplicate file present"<<endl;
         return -1;
     }
 
