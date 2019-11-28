@@ -39,6 +39,8 @@ int find_next_free_inode_block(int index){
 void fillInode( ll &blocks_to_write, ll &base_index ,ll &relative_index, struct inode temp,
                 int &k, char *arr, FILE *disk_ptr, int &baseinode,
                 int &p){
+                    // k length of data to write
+                    // p position in file_inode_position_map
 //    cout << "blocks_to_write " << blocks_to_write << " base_index " << base_index <<
  //           " relative_index " << relative_index << " k " << k << " baseinode " << baseinode << endl;
     int c=0, z=0, sz=0;
@@ -113,7 +115,7 @@ int file_write(int fd, string s, char* disk_name){
     // int c=0, z=0, sz=0;
     int k=len;
 //    cout << blocks_to_write << endl;  
-    if(blocks_to_write <= num_of_inode_pointer){  //direct write
+    if(blocks_to_write <= num_of_direct_pointer){  //direct write
         ll relative_index = base_index + block_size * temp.block_ptr[0];    
         fseek(disk_ptr, relative_index, SEEK_SET);
  //       cout << endl << base_index << " " << relative_index << endl;
